@@ -59,7 +59,8 @@ Next, configure `cookingsite/settings.py`.
 Set the following important variables:
 
 - `RECIPES_COLLECTION_PREFIX`: path to recipe collection
-  in textual format (TODO: description of format)
+  in textual format
+  (for an example, see the repository https://github.com/thorbenk/example_gourmet_recipes)
 - `DATABASE`: how to connect to your database 
 
 Now, initialize the database:
