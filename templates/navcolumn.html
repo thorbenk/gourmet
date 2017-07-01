@@ -1,0 +1,16 @@
+<ul>
+    <li><a href="/">Home</a></li>
+    <li><a href="{% url 'recipes' %}">Recipes</a></li>
+    <li><a href="{% url 'recipes_like' %}">Recipes &gt; 0</a></li>
+    <li><a href="{% url 'tags' %}">Tags</a></li>
+    <li><a href="{% url 'ingredients' %}">All ingredients</a></li>
+    <li><a href="{% url 'ingredients_like' %}">All ingredients > 0</a></li>
+    <li><a href="{% url 'search_ingredients' %}">Search for ingredients</a></li>
+    <li><a href="{% url 'sources' %}">Books</a></li>
+    <li><a href="{% url 'upcoming_recipes' %}">Plan</a></li>
+    <ul>
+        <li><a href="{% url 'calendar_years' %}">Year</a></li>
+        <li><a href="{% url 'calendar_month' %}">Month</a></li>
+    </ul>
+    <li><a href="{% url 'pantry' %}">Pantry</a></li>
+</ul>

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load recipes_extras %}
+{% block content %}
+<!-- TAG //-->
+<h1><i class="glyphicon glyphicon-tag"></i>&nbsp;{{tag.name}}</h1>
+<div class="btn-group">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+{% if ncols == 1 %}Display: List{% elif ncols == 4 %}Display: Grid 4{% else %}Display: List 6{% endif %}
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuViewType">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'tag' tag_slug=tag.name ncols=1 order_by=order_by %}">List</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'tag' tag_slug=tag.name ncols=4 order_by=order_by %}">Grid 4</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'tag' tag_slug=tag.name ncols=6 order_by=order_by %}">Grid 6</a></li>
+  </ul>
+</div>
+<div class="btn-group">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+{% if order_by == "name_asc" %}
+Name (A &rarr; Z)
+{% elif order_by == "name_desc" %}
+Name (Z &rarr; A)
+{% elif order_by == "creation_date_desc" %}
+Erstellungsdatum (neueste zuerst)
+{% elif order_by == "creation_date_asc" %}
+Erstellungsdatum (&auml;teste zuerst)
+{% endif %}
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuOrderBy">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'tag' tag_slug=tag.name ncols=ncols order_by="name_asc" %}">Name (A &rarr; Z)</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'tag' tag_slug=tag.name ncols=ncols order_by="name_desc" %}">Name (Z &rarr; A)</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'tag' tag_slug=tag.name ncols=ncols order_by="creation_date_desc" %}">Erstellungsdatum (neueste zuerst)</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'tag' tag_slug=tag.name ncols=ncols order_by="creation_date_asc" %}">Erstellungsdatum (&auml;teste zuerst)</a></li>
+  </ul>
+</div>
+<br>
+<br>
+{% recipe_list %}
+{% endblock %}

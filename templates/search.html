@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load recipes_extras %}
+{% block content %}
+<h1><i class="glyphicon glyphicon-search"></i>&nbsp;Search</h1>
+<form role="form-horizontal" method="get" action="{% url 'search' %}">
+<div class="input-append">
+<input type="text" name="q" class="form-control" placeholder="Recipe name..." required>
+<button class="btn btn-lg btn-primary" type="submit"><i class="glyphicon glyphicon-search"></i></button><br>
+</div>
+</form>
+{% endblock %}
+<!-- kate: space-indent on; indent-width 2; //-->

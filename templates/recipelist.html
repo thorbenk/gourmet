@@ -1,0 +1,58 @@
+{% load recipes_extras %}
+
+{%if ncols > 1 %}
+{% for group in recipes|group_by:ncols %}
+<div class="row">
+  {% for recipe in group %}
+  {% if ncols == 4 %}
+  <div class="col-xs-3">
+  {% else %}
+  <div class="col-xs-2">
+  {% endif %}
+    <a href="{{recipe.get_absolute_url}}" class="thumbnail">
+      <img src="/static/images/{{ recipe.thumb }}" class="img-rounded img-responsive" />
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+{% else %}
+{% for recipe in recipes %}
+<div class="container">
+  <div class="row">
+    <div class="col-xs-2">
+      <a href="{{recipe.get_absolute_url}}" class="thumbnail">
+        <img src="/static/images/{{ recipe.thumb }}" class="img-rounded img-responsive" />
+      </a>
+    </div>
+    <div class="col-xs-10">
+      <h3><a href="{{recipe.get_absolute_url}}">{{recipe.name}}</a></h3>
+      {% if recipe.subtitle %}
+      &nbsp;{{recipe.subtitle}}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<ul class="pagination">
+    {% if recipes.number == 1 %}
+    <li class="disabled"><a href="{{ baseurl }}page={{ contacts.previous_page_number }}">previous</a>
+    {% else %}
+    <li><a href="{{ baseurl }}page={{ contacts.previous_page_number }}">previous</a></li>
+    {% endif %}
+    {% for page in page_numbers %}
+    {% if recipes.number == page %} 
+    <li class="active"><a href="#">{{ page }}</a></li>
+    {% else %}
+    <li><a href="{{ baseurl }}page={{ page }}">{{ page }}</a></li>
+    {% endif %}
+    {% endfor%}
+    {% if recipes.has_next %}
+    <li><a href="{{ request.get_full_path }}{{ baseurl }}page={{ recipes.next_page_number }}">next</a></li>
+    {% else %}
+    <li class="disabled"><a href="#">next</a></li>
+    {% endif %}
+</ul>
+<!-- kate: space-indent on; indent-width 2; //-->

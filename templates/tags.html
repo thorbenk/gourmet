@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1><i class="glyphicon glyphicon-tags"></i>&nbsp;Tags</h1>
+<ul class="nav nav-pills">
+  <li class="{% if order_by == 'name' %}active{% endif %}"><a href="{% url 'tags' order_by='name' %}">order by name</a></li>
+  <li class="{% if order_by == 'recipe_count' %}active{% endif %}"><a href="{% url 'tags' order_by='recipe_count' %}">by number of recipes</a></li>
+</ul>
+<br>
+<ul class="list-group">
+{% for tag in tags %}
+    <li class="list-group-item">
+        <span class="badge pull-left">{{tag.recipe_count}}</span>&nbsp;<a href="{{ tag.get_absolute_url }}">{{tag.name}}</a>
+    </li>
+{% endfor %}
+</ul>
+{% endblock %}
+

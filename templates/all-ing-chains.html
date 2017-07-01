@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% for ingredientChain in ingredientChains %}
+    {% include "ingchain.html" %}
+{% endfor %}
+
+{% endblock %}

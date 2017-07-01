@@ -1,0 +1,323 @@
+<!-- kate: space-indent on; indent-width 2;  //-->
+{% extends "base.html" %}
+{% load recipes_extras %}
+{% block head %}
+<link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+<script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+
+var recipeData  = null;
+var editMode    = false;
+
+function toggleEditMode () {
+    editMode = !editMode;
+
+    recipeTitle = $('#recipe-title');
+    recipePreparation = $('#recipe-preparation');
+    if(editMode) {
+        recipeTitle.editable('enable');
+        recipePreparation.editable('enable');
+    }
+    else {
+        recipeTitle.editable('disable');
+        recipePreparation.editable('disable');
+    }
+}
+
+function renderIsScheduled() {
+    var scheduledWhen = "";
+    var scheduledToggle = ""
+    if (recipeData === null) {
+        return;
+    }
+    if (recipeData["scheduled"].length > 0) {
+        scheduledWhen = recipeData["scheduled"].join("<br>");
+        scheduledToggle = "delete from menu";
+    }
+    else {
+        scheduledWhen = "not planned";
+        scheduledToggle = "Add to menu";
+    }
+    scheduledWhen += "&nbsp;&nbsp;"; // FIXME
+    $('#scheduled-when').html(scheduledWhen);
+    $('#scheduled-toggle').html(scheduledToggle);
+}
+
+function renderPreparation(preparation, sourceData) {
+    var numRegexp = /^([0-9]+)\./
+    var out = ""
+    var i;
+    var j;
+    var steps = [];
+    var step = 1;
+
+    s = preparation.split("\n");
+    i = 0;
+    while(i < s.length) {
+        line = s[i].trim();
+        i += 1;
+        res = numRegexp.exec(line);
+        if (res != null && res.length > 0) {
+            step = parseInt(res[0])-1;
+            while (steps.length <= step) {
+                steps.push([]);
+            }
+        }
+        else {
+            if (/^- /.test(line)) {
+                steps[step].push(line.substring(2, line.length-2));
+            }
+        }
+    }
+
+    out += "<ol class=\"big-numbers\">";
+    for (i = 0; i < steps.length; i+=1) {
+        out += "<li><ul class=\"prep-substeps\">";
+        thisStep = steps[i];
+        for (j = 0; j < thisStep.length; ++j) {
+            out += "<li>" + thisStep[j] + "</li>";
+        }
+        out += "</ul></li>";
+    }
+    out += "</ol>";
+    $(this).html(out);
+}
+
+function renderEditTags() {
+    var tagList = $('#tagList')
+    var autocompleteTags = recipeData["allTags"];
+    tagList.tagit({
+        availableTags: autocompleteTags,
+        allowSpaces: false,
+        singleField: true,
+        caseSensitive: false,
+        singleFieldNode: $('#tagsfield'),
+    });
+
+    var s = "";
+    for(var i in autocompleteTags.sort()) {
+        s += "<a href=\"javascript:addTag('"+autocompleteTags[i]+"')\">"+autocompleteTags[i]+"</a> ";
+    }
+    $('#all_available_tags').html(s);
+
+    // set current tags
+    tags = recipeData["tags"];
+    tags.sort();
+    for (var i=0; i<tags.length; ++i) {
+        tagList.tagit("createTag", tags[i]);
+    }
+}
+
+function renderCurrentTags() {
+    var tags = recipeData["tags"]
+    s=""
+    for (i=0; i<tags.length; ++i) {
+        tag = tags[i];
+        s+="<a href=\"\"><button type=\"button\" class=\"btn btn-default btn-md\">"+tag+"</button></a> ";
+    }
+    s+="&nbsp;&nbsp;";
+    $('#current-tags').html(s);
+}
+
+function toggleTags() {
+    renderEditTags();
+    $('#edit-tags-content').fadeIn(600);
+}
+
+function trigger() {
+    $.ajax({
+        type: "POST",
+        url: $('#scheduled-toggle').attr('ajax-url'),
+        data: {
+            isScheduled: recipeData["scheduled"].length > 0,
+            csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+        },
+        success: function(response) {
+            if ("scheduled" in response) {
+                recipeData["scheduled"] = response["scheduled"];
+                renderIsScheduled();
+            }
+            else {
+                alert("Error!");
+            }
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            alert("Error "+errorThrown+xhr.responseText);
+        }
+    });
+}
+
+function addTag(tagName) {
+    var tagList = $('#tagList');
+    tagList.tagit("createTag", tagName);
+}
+
+function changeRating(rating) {
+    $.ajax({
+        type: "POST",
+        url: "{% url 'ajax_recipe_edit_rating' recipe_slug=recipe.slug %}",
+        data: {
+            rating: rating,
+            csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+        },
+        success: function(response) {
+            recipeData["rating"] = response["rating"];
+            renderCurrentTags();
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            alert("Error "+errorThrown+xhr.responseText);
+        }
+    });
+}
+
+$(document).ready(function() {
+    $.ajaxSetup({cache: false});
+    $('#edit-tags-content').hide();
+    $('#edit-tags-form').submit(function(event) {
+        event.preventDefault();
+        $('#edit-tags-content').hide();
+        var tags = $("#tagsfield").val();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ajax_recipe_edit_tags' recipe_slug=recipe.slug %}",
+            data: {
+                recipe_tags: $("#tagsfield").val(),
+                csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+            },
+            success: function(response) {
+                recipeData["tags"] = response["tags"];
+                renderCurrentTags();
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                alert("Error "+errorThrown+xhr.responseText);
+            }
+        });
+    });
+    $('#scheduled-toggle').click(trigger);
+    $('#tags-toggle').click(toggleTags);
+    $('#recipe_rating').on('change', function(){
+        changeRating($(this).val());
+    });
+    $('#recipe_rating').on('rating.clear', function(){
+        changeRating(0);
+    });
+    $('#recipe_rating').rating({showCaption: false, hoverChangeStars: false});
+
+    $('#recipe-title').editable({
+        type: 'text',
+        pk: 1,
+        url: '/post',
+        title: 'Title',
+        mode: 'inline'
+    });
+    $('#recipe-title').editable('disable');
+    $('#recipe-preparation').editable({
+        type: 'textarea',
+        pk: 1,
+        url: '/post',
+        title: 'Preparation',
+        rows: 20,
+        display: renderPreparation,
+        mode: 'inline'
+    });
+    $('#recipe-preparation').editable('disable');
+    $.getJSON("{% url 'json_recipe' recipe_slug=recipe.slug %}", function(json) {
+        recipeData = json;
+        renderIsScheduled();
+        renderCurrentTags();
+        $('#recipe_rating').rating('update', recipeData["rating"]);
+        $('#recipe-preparation').editable('setValue', recipeData['preparation']);
+    });
+});
+</script>
+{% endblock %}
+{% block content %}
+
+{% csrf_token %}
+
+<p><a href="javascript:toggleEditMode();">Edit</a></p>
+
+<h1><div id="recipe-title">{{recipe.name}}</div>
+{% if recipe.subtitle %}
+<br><small>{{recipe.subtitle}}</small>
+{% endif %}
+</h1>
+
+<p>Source: <a href="{{recipe.source.get_absolute_url}}">{{recipe.source.name}}</a>{%if recipe.page %}, page {{recipe.page}}{% endif %}</p>
+<div>
+  <a href="/static/images/{{recipe.thumb}}">
+  <img src="/static/images/{{recipe.thumb}}" class="img-rounded img-responsive img-thumbnail">
+  </a>
+</div>
+
+<div id='edit-tags-content'>
+<br>
+<form id="edit-tags-form">
+    {% csrf_token %}
+    <input type="text" id="tagsfield" name="recipe_tags" hidden="true" value="{{ initial_tags }}" />
+    <ul id="tagList"></ul>
+    <button type="submit" class="btn btn-lg btn-primary">Change tags</button>
+</form>
+<h2>
+<small id="all_available_tags"></small>
+</h2>
+<br>
+</div>
+
+<table>
+<tr>
+  <td><h3><a href="{% url 'tags' %}"><i class="glyphicon glyphicon-tags"></i></a>&nbsp;&nbsp;</h3></td>
+  <td><h3><div id="current-tags"></div></h3></td>
+  <td>
+    <h3><small><a href="javascript:void(0);" id="tags-toggle">Edit tags</a></small></h3>
+  </td>
+</tr>
+<tr>
+  <td><h3><a href="{% url 'upcoming_recipes' %}"><i class="glyphicon glyphicon-time"></i></a>&nbsp;&nbsp;</h3></td>
+  <td><h3><div id="scheduled-when"></div></h3></td>
+  <td><h3><small><a href="javascript:void(0)" id="scheduled-toggle" ajax-url="{% url 'ajax_recipe_scheduled_toggle' recipe.slug %}"></a></small></h3></td>
+</tr>
+<tr>
+    <td><h3><i class="glyphicon glyphicon-heart" style="color:#dddddd;"></i>&nbsp;&nbsp;</h3></td>
+    <td valign="center">
+      <input type="number" name="recipe_rating" id="recipe_rating" />
+    </td>
+    <td></td>
+</tr>
+</table>
+
+<h2>Ingredients</h2>
+<table class="table-ingredients">
+{% for ing in recipe.get_ingredients %}
+<tr><td>{{ ing.formattedAmount }}</td>
+<td><a href="{{ing.ingredient.get_absolute_url}}">{{ing.textIngredient}}</a></td>
+</tr>
+{% endfor %}
+</table>
+
+{% if recipe.pdf %}
+<h3>Recipe <a href="/static/{{ recipe.pdf|safe }}">als PDF</a>.</h3>
+{% endif %}
+
+<h2>Method</h2>
+<div id="recipe-preparation"></div>
+
+{% if recipe.get_images %}
+<h2>Images</h2>
+{% for img in recipe.get_images %}
+    {% if img.image|startswith:"http" %}
+        <img src="{{img.image|safe}}" class="img-responsive" />
+    {% else %}
+        <a href="/static/{{img.image|safe}}"><img src="/static/{{img.image|safe}}" class="img-responsive" /></a>
+    {% endif %}
+{% endfor %}
+{% endif %}
+
+{% if recipe.smartinfo %}
+<p><b>Info 1: </b>{{recipe.smartinfo}}</p>
+{% endif %}
+{% if recipe.smarterinfo %}
+<p><b>Info 2: </b>{{recipe.smarterinfo}}</p>
+{% endif %}
+{% endblock %}
+<!-- kate: space-indent on; indent-width 2; //-->

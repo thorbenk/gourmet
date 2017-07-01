@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block head %}
+{{ form.media }}
+{% endblock %}
+{% block content %}
+{% if mode == "add" %}
+<h1>Schedule recipe</h1>
+{% else %}
+<h1>Change Plan</h1>
+{% endif %}
+<p>Selected recipe: <a href="{% url 'recipe' recipe.slug %}">{{recipe.name}}</a></p>
+{% if mode == "add" %}
+<form action="{% url 'schedule_a_recipe' recipe.slug %}" method="post">
+{% else %}
+<form action="{% url 'edit_scheduled_recipe' scheduledRecipeId %}" method="post">
+{% endif %}
+  {% csrf_token %}
+  {{form.as_p}}
+  {% if mode == "add" %}
+  <input type="submit" value="Add" />
+  {% else %}
+  <input type="submit" value="Change" />
+  {% endif %}
+</form>
+{% endblock %}
+<!-- kate: space-indent on; indent-width 2;  //-->
+
+

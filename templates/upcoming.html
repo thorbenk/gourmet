@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<h1><i class="glyphicon glyphicon-time"></i>&nbsp;Planned Recipes</h1>
+<table class="table table-bordered table-striped">
+{% for i, scheduledRecipe in scheduledRecipes %}
+  <tr>
+    <td><strong>[{{i}}]</strong></td>
+    <td>
+      <i class="glyphicon glyphicon-time">&nbsp;</i>{{scheduledRecipe.scheduled}}</a>
+    </td>
+    <td>
+      <a href="{% url 'edit_scheduled_recipe' scheduledRecipe.id %}">{{scheduledRecipe.multiplier}}x</a>&nbsp;
+      <a href="{{scheduledRecipe.recipe.get_absolute_url}}">{{scheduledRecipe.recipe.name}}</a>
+    </td>
+    <td>
+      <a href="{% url 'upcoming_recipes_delete' scheduledRecipe.id %}"><i class="glyphicon glyphicon-trash"></i> Delete</a>
+    </td>
+  </tr>
+{% endfor %}
+</table>
+
+<h1>Grocery List</h1>
+<table>
+{% for category, ings in categorizedIngredients.items %}
+  <tr>
+    <td colspan="4" style="border-bottom: solid; border-width: 1px; padding-top: 0.5em;"><b>{{category}}</b></td>
+  </tr>
+  <tr>
+  {% for ingredient, referencedRecipes, totalAmountNeeded, amountInPantry in ings %}
+    <td>{{totalAmountNeeded}}&nbsp;</td>
+    <td>
+      <a href="{{ingredient.get_absolute_url}}">{{ingredient.name}}</a>
+    </td>
+    <td>
+&nbsp;&nbsp;&nbsp;&nbsp;
+    {% for amount, referencedRecipeNumber, referencedRecipe in referencedRecipes %}
+    {{ amount }}
+    <span style="color: gray;">&#91;<a href="{{referencedRecipe.get_absolute_url}}">{{referencedRecipeNumber}}</a>&#93;</span>
+        {% if not forloop.last %}
+            +
+        {% endif %}
+    {% endfor %}
+    </td>
+    <td>
+&nbsp;&nbsp;&nbsp;&nbsp;
+      {{amountInPantry}}&nbsp;
+      <div class="pull-right">
+        <a href="{% url 'pantry_ingredient_edit' ingredient.slug 'upcoming' %}">
+        <span class="glyphicon glyphicon-download"></span>&nbsp;available
+        </a>
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+</tr>
+{% endfor %}
+</table>
+<br>
+{% endblock %}
+<!-- kate: space-indent on; indent-width 2; //-->

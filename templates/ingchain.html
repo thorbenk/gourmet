@@ -1,0 +1,9 @@
+{% spaceless %}
+<ol class="breadcrumb">
+{% for ings in ingredientChain %}
+    <li>{% for ing in ings %}{% if not forloop.parentloop.last %}<a href="{% url 'ingredient' ing.1 %}">{% endif %}{{ing.0}}{% if not forloop.parentloop.last %}</a>{% endif %}
+    {% endfor %}
+    </li>
+{% endfor %}
+</ol>
+{% endspaceless %}

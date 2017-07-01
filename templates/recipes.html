@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load recipes_extras %}
+{% block content %}
+<h1><i class="glyphicon glyphicon-cutlery"></i>&nbsp;Recipes</h1>
+<div class="btn-group">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+{% if ncols == 1 %}Display: List{% elif ncols == 4 %}Display: Grid 4{% else %}Display: List 6{% endif %}
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuViewType">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'recipes' ncols=1 order_by=order_by %}">List</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'recipes' ncols=4 order_by=order_by %}">Grid 4</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'recipes' ncols=6 order_by=order_by %}">Grid 6</a></li>
+  </ul>
+</div>
+<div class="btn-group">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+{% if order_by == "name_asc" %}
+Name (A &rarr; Z)
+{% elif order_by == "name_desc" %}
+Name (Z &rarr; A)
+{% elif order_by == "creation_date_desc" %}
+Creation date (newest first)
+{% elif order_by == "creation_date_asc" %}
+Creation date (oldest first)
+{% endif %}
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuOrderBy">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'recipes' ncols=ncols order_by="name_asc" %}">Name (A &rarr; Z)</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'recipes' ncols=ncols order_by="name_desc" %}">Name (Z &rarr; A)</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'recipes' ncols=ncols order_by="creation_date_desc" %}">Creation date (newest first)</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'recipes' ncols=ncols order_by="creation_date_asc" %}">Creation date (oldest first)</a></li>
+  </ul>
+</div>
+<br><br>
+{% recipe_list %}
+{% endblock %}
+<!-- kate: space-indent on; indent-width 2; //-->

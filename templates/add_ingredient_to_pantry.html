@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if mode == "add" %}
+    <h1>Add to pantry: {{ingredient.name}}</h1>
+{% else %}
+    <h1>Change pantry: {{ingredient.name}}</h1>
+{% endif %}
+
+{{form.non_field_errors}}
+<form action="{% url 'pantry_ingredient_edit' ingredient.slug nextpage %}" method="post">
+{% csrf_token %}
+{{form.as_p}}
+{% if mode == "add" %}
+    <input type="submit" value="Add to pantry" />
+{% else %}
+    <input type="submit" value="Change" />
+{% endif %}
+</form>
+
+{% endblock %}

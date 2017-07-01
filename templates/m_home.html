@@ -1,0 +1,442 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <meta charset='UTF-8'>
+    <title>m.recipes</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+    <script>
+    
+function showRecipeDetail( urlObj, options )
+{
+    var pageName = "page-recipe-detail";
+    
+    var recipeSlug = urlObj.hash.replace( "#"+pageName+"?recipe=", "" );
+    console.log( "slug=" + recipeSlug );
+   
+    var $page = $( '#'+pageName );
+    var $header = $page.children( ":jqmData(role=header)" );
+    var $content = $page.children( ":jqmData(role=content)" );
+    
+    $.getJSON("/recipe/"+recipeSlug+".json",
+    function(data) {
+        console.log("name="  + data.name );
+        console.log("page="  + $page );
+        html = "<h2>" + data["name"] + "</h2>\n";
+        html += "<b>Tags:</b> \n";
+        for(i in data.tags) {
+            html += "<a href=\"#page-tag-detail?tag="+data.tags[i].slug+"\">"+data.tags[i].name+"</a> \n"
+        }
+        html += "<h3>Zutaten</h3>\n";
+        html += "<ul data-role=\"listview\" id=\"ingredientlist\">\n";
+        for(i in data.ingredients) {
+            ing  = data.ingredients[i];
+            html += "<li><a href=\"#page-ingredient-detail?ingredient=" + ing.ingredient_slug + "\">" + ing.amount + " " + ing.text + "</a></p></li>";
+        }
+        html += "</ul>\n";
+        $content.html(html);
+        
+        $page.page();
+        
+        $content.find('#ingredientlist').listview();
+        
+        options.dataUrl = urlObj.href;
+        $.mobile.changePage( $page, options );
+    });
+    
+}
+
+function showTagDetail( urlObj, options )
+{
+    var pageName = "page-tag-detail";
+    var tagSlug = urlObj.hash.replace( "#"+pageName+"?tag=", "" );
+    console.log( "slug=" + tagSlug );
+    var $page = $( '#'+pageName );
+    var $header = $page.children( ":jqmData(role=header)" );
+    var $content = $page.children( ":jqmData(role=content)" );
+    
+    $.getJSON("/tag/"+tagSlug+".json",
+    function(data) {
+        $header.find("h1").html("Tag "+data.tag.name);
+        html = "<h2>Rezepte tagged <i>"+data.tag.name+"</i></h2>";
+        html += "<ul data-role=\"list\" data-inline=\"false\" id=\"taglist\">";
+        for(i in data.recipes) {
+            r = data.recipes[i]
+            html += "<li><a href=#page-recipe-detail?recipe=\""+r.slug+"\">"+r.name+"</li>";
+        }
+        html += "</ul>"
+        $content.html(html);
+        $page.page();
+        $content.find('#taglist').listview();
+        options.dataUrl = urlObj.href;
+        $.mobile.changePage( $page, options );
+    });
+}
+
+function showIngredientDetail( urlObj, options )
+{
+    var pageName = "page-ingredient-detail";
+    
+    var ingredientSlug = urlObj.hash.replace( "#"+pageName+"?ingredient=", "" );
+    console.log( "slug=" + ingredientSlug );
+   
+    var $page = $( '#'+pageName );
+    var $header = $page.children( ":jqmData(role=header)" );
+    var $content = $page.children( ":jqmData(role=content)" );
+    
+    $.getJSON("/ingredient/"+ingredientSlug+".json",
+    function(data) {
+        console.log("name="  + data.name );
+        console.log("page="  + $page );
+        var html = "";
+       
+        for(i in data.ingredient_chains) {
+            var ingChain    = data.ingredient_chains[i].chain
+            var descendants = data.ingredient_chains[i].descendants
+            html+="<hr>";
+            for(j in ingChain) {
+                var ing = ingChain[j]
+                if(j < ingChain.length-1) {
+                    html += "<a href=\"#"+pageName+"?ingredient="+ing.slug+"\">"+ing.name + "</a>";
+                    html += " &gt ";
+                }
+                else {
+                    html += ing.name;
+                }
+            }
+            html+="<hr>";
+            
+            if(descendants.length > 0) {
+                html += "<div id=\"collapsible-descendants\", data-role=\"collapsible\" data-inset=\"false\" data-mini=\"true\"><h3>speziellere Zutaten</h3><p>"
+                html += "<ul data-role=\"list-view\" id=\"descendants\">";
+                for(j in descendants) {
+                    var desc = descendants[j]
+                    html += "<li><a href=\"#"+pageName+"?ingredient="+desc.slug+"\">"+desc.name+"</a></li>\n";
+                }
+                html += "</ul></div>\n";
+            }
+        }
+        html += "<h2>Passende Rezepte</h2>"
+        html += "<ul id=\"recipelist\" data-role=listview>"
+        for(i in data.recipes) {
+            var r = data.recipes[i]
+            console.log("xxxxxxxxx")
+            console.log(r)
+            console.log(r.slug)
+            html += "<li><h3><a href=\"#page-recipe-detail?recipe="+r.slug+"\">"+r.name+"</a></h3>";
+            html += "<p>";
+            for(j in r.matching_ingredients) {
+                var m = r.matching_ingredients[j]
+                html += m.formatted_amount + " <a href=\"#page-ingredient-detail?ingredient="+m.slug+"\">"+m.name+"</a>";
+                if(j < r.matching_ingredients.length-1) {
+                    html += ", ";
+                }
+            }
+            html += "</p></li>";
+        }
+        html += "</ul>"
+        
+        $content.html(html)
+        
+        $page.page();
+      
+        if($content.find('#descendants')) {
+            $content.find('#descendants').listview();
+        }
+        $content.find('#recipelist').listview();
+        $content.find('#collapsible-descendants').collapsible();
+        
+        
+        
+        options.dataUrl = urlObj.href;
+        $.mobile.changePage( $page, options );
+    });
+}
+    
+// Listen for any attempts to call changePage().
+$(document).bind( "pagebeforechange", function( e, data ) {
+
+    // We only want to handle changePage() calls where the caller is
+    // asking us to load a page by URL.
+    if ( typeof data.toPage === "string" ) {
+        // We are being asked to load a page by URL, but we only
+        // want to handle URLs that request the data for a specific
+        // category.
+        var u = $.mobile.path.parseUrl( data.toPage );
+        var re_recipeDetail     = /^#page-recipe-detail/;
+        var re_ingredientDetail = /^#page-ingredient-detail/;
+        var re_tagDetail        = /^#page-tag-detail/;
+
+        console.log("show if "+u.hash);
+        
+        if ( u.hash.search(re_recipeDetail) !== -1 ) {
+            console.log("show as recipe detail page: "+u.hash);
+            showRecipeDetail( u, data.options );
+            e.preventDefault();
+        }
+        else if( u.hash.search(re_ingredientDetail) !== -1 ) {
+            console.log("show as ingredient detail page: "+u.hash);
+            showIngredientDetail( u, data.options );
+            e.preventDefault();
+        }
+        else if( u.hash.search(re_tagDetail) !== -1 ) {
+            console.log("show as tag detail page: "+u.hash);
+            showTagDetail( u, data.options );
+            e.preventDefault();
+        }
+    }
+});
+
+    </script>
+</head> 
+<body> 
+
+<!-- ###################################################################################################################
+     home
+     ############################################################################################################## -->
+     
+<!-- ###################################################################################################################
+     page recipe list
+     ############################################################################################################## -->
+     
+<div data-role="page" id="page-recipe-list">
+    <div data-role="header">
+        <h1>Rezepte</h1>
+    </div><!-- /header -->
+
+    <div data-role="content">   
+        <p>
+            <ul id="recipelist" data-role="listview" data-inset="false">
+            </ul>
+        </p>
+        <div data-role="controlgroup" data-type="horizontal" id="navbuttons"></div>
+        <script>
+$.getJSON("/recipes.json",
+  function(data) {
+    l = $("#recipelist");
+    $.each(data["results"], function(i,item){
+        l.append("<li><a href=\"#page-recipe-detail?recipe="+item.slug+"\">"+item.name+"</a></li>\n");
+    });
+  
+    /*
+    b = $("#navbuttons")
+    if(data.previous) {
+        b.append("<a href=\"#page-recipe-list&page=42\" data-role=\"button\" data-inline=\"true\" data-icon=\"back\">vorige Seite</a>")
+        $('#navbuttons').find("a[data-role='button']").button()
+    }
+    if(data.next) {
+        b.append("<a href=\"#page-recipe-list&page=42\" data-role=\"button\" data-inline=\"true\" data-icon=\"forward\">n&auml;chste Seite</a>").button()
+        $('#navbuttons').find("a[data-role='button']").button()
+    }
+    */
+    if ( $('#recipelist').hasClass('ui-listview')) {
+        $('#recipelist').listview('refresh');
+    } 
+    else {
+        $('#recipelist').trigger('create');
+    }
+  });
+        </script>
+    </div>
+    
+    <div data-role="footer" data-id="foo1" data-position="fixed">
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#page-recipe-list">Rezepte</a></li>
+                <li><a href="#page-ingredients">Zutaten</a></li>
+                <li><a href="#page-tags">Tags</a></li>
+                <li><a href="#page-plan">Plan</a></li>
+            </ul>
+        </div><!-- /navbar -->
+    </div>
+</div><!-- /page -->
+
+<!-- ###################################################################################################################
+     page recipe detail
+     ############################################################################################################## -->
+     
+<div data-role="page" id="page-recipe-detail" data-add-back-btn="true">
+    <div data-role="header">
+        <h1>Rezept</h1>
+    </div><!-- /header -->
+    
+    <div data-role="content">   
+    </div>
+    
+    <div data-role="footer" data-id="foo1" data-position="fixed">
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#page-recipe-list">Rezepte</a></li>
+                <li><a href="#page-ingredients">Zutaten</a></li>
+                <li><a href="#page-tags">Tags</a></li>
+                <li><a href="#page-plan">Plan</a></li>
+            </ul>
+        </div><!-- /navbar -->
+    </div>
+</div>
+
+<!-- ###################################################################################################################
+     page ingredient detail
+     ############################################################################################################## -->
+     
+<div data-role="page" id="page-ingredient-detail" data-add-back-btn="true">
+    <div data-role="header">
+        <h1>Rezepte!</h1>
+    </div><!-- /header -->
+    
+    <div data-role="content">   
+    </div>
+    
+    <div data-role="footer" data-id="foo1" data-position="fixed">
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#page-recipe-list">Rezepte</a></li>
+                <li><a href="#page-ingredients">Zutaten</a></li>
+                <li><a href="#page-tags">Tags</a></li>
+                <li><a href="#page-plan">Plan</a></li>
+            </ul>
+        </div><!-- /navbar -->
+    </div>
+</div>
+
+<!-- ###################################################################################################################
+     page tags
+     ############################################################################################################## -->
+     
+<div data-role="page" id="page-tags" data-add-back-btn="true">
+    <div data-role="header">
+        <h1>Tags</h1>
+    </div><!-- /header -->
+    
+    <div data-role="content">   
+        <p>
+            <ul id="taglist" data-role="listview" data-inset="false">
+            </ul>
+        </p>
+        <div data-role="controlgroup" data-type="horizontal" id="navbuttons"></div>
+        <script>
+$.getJSON("/tags.json",
+  function(data) {
+    l = $("#taglist");
+    $.each(data["results"], function(i,item){
+        l.append("<li><a href=\"#page-tag-detail?tag="+item.slug+"\">"+item.name+"</a></li>\n");
+    });
+    if ( $('#taglist').hasClass('ui-listview')) {
+        $('#taglist').listview('refresh');
+    } 
+    else {
+        $('#taglist').trigger('create');
+    }
+    
+  });
+        </script>
+    </div>
+    
+    <div data-role="footer" data-id="foo1" data-position="fixed">
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#page-recipe-list">Rezepte</a></li>
+                <li><a href="#page-ingredients">Zutaten</a></li>
+                <li><a href="#page-tags">Tags</a></li>
+                <li><a href="#page-plan">Plan</a></li>
+            </ul>
+        </div><!-- /navbar -->
+    </div>
+</div>
+  
+<!-- ###################################################################################################################
+     page ingredients
+     ############################################################################################################## -->
+     
+<div data-role="page" id="page-ingredients" data-add-back-btn="true">
+    <div data-role="header">
+        <h1>Zutaten</h1>
+    </div><!-- /header -->
+    
+    <div data-role="content">   
+        <p>
+            <ul id="ingredientlist" data-filter="true" data-role="listview" data-autodividers="true" data-inset="false">
+            </ul>
+        </p>
+        <div data-role="controlgroup" data-type="horizontal" id="navbuttons"></div>
+        <script>
+$.getJSON("/ingredients.json",
+  function(data) {
+    l = $("#ingredientlist");
+    $.each(data, function(i,item){
+        l.append("<li><a href=\"#page-ingredient-detail?ingredient="+item.slug+"\">"+item.name+"</a></li>\n");
+    });
+    if ( $('#ingredientlist').hasClass('ui-listview')) {
+        $('#ingredientlist').listview('refresh');
+    } 
+    else {
+        $('#ingredientlist').trigger('create');
+    }
+  });
+        </script>
+    </div>
+    
+    <div data-role="footer" data-id="foo1" data-position="fixed">
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#page-recipe-list">Rezepte</a></li>
+                <li><a href="#page-ingredients">Zutaten</a></li>
+                <li><a href="#page-tags">Tags</a></li>
+                <li><a href="#page-plan">Plan</a></li>
+            </ul>
+        </div><!-- /navbar -->
+    </div>
+</div>
+  
+<!-- ###################################################################################################################
+     page tag detail
+     ############################################################################################################## -->
+
+<div data-role="page" id="page-tag-detail" data-add-back-btn="true">
+    <div data-role="header">
+        <h1></h1>
+    </div><!-- /header -->
+    
+    <div data-role="content">   
+    </div>
+    
+    <div data-role="footer" data-id="foo1" data-position="fixed">
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#page-recipe-list">Rezepte</a></li>
+                <li><a href="#page-ingredients">Zutaten</a></li>
+                <li><a href="#page-tags">Tags</a></li>
+                <li><a href="#page-plan">Plan</a></li>
+            </ul>
+        </div><!-- /navbar -->
+    </div>
+</div>
+
+<!-- ###################################################################################################################
+     page plan 
+     ############################################################################################################## -->
+
+<div data-role="page" id="page-plan" data-add-back-btn="true">
+    <div data-role="header">
+        <h1>Plan</h1>
+    </div><!-- /header -->
+    
+    <div data-role="content">   
+    </div>
+    
+    <div data-role="footer" data-id="foo1" data-position="fixed">
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#page-recipe-list">Rezepte</a></li>
+                <li><a href="#page-ingredients">Zutaten</a></li>
+                <li><a href="#page-tags">Tags</a></li>
+                <li><a href="#page-plan">Plan</a></li>
+            </ul>
+        </div><!-- /navbar -->
+    </div>
+</div>
+
+</body>
+</html>

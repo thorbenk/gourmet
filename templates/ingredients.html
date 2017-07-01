@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Ingredients</h1>
+<ul class="list-group">
+{% for i in ingredients %}
+  <li class="list-group-item">
+    <a href="{{i.get_absolute_url}}">{{i.name}}</a><span class="badge">{{i.num_recipes}}</span>
+    &nbsp;<a href="{% url 'pantry_ingredient_edit' i.slug 'pantry' %}">(have it already)</a>
+  </li>
+{% endfor %}
+</table>
+{% endblock %}

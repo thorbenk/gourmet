@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block head %}
+<!-- These 2 CSS files are required: any 1 jQuery UI theme CSS, plus the Tag-it base CSS. -->
+<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/flick/jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="/static/css/jquery.tagit.css">
+
+<!-- This is an optional CSS theme that only applies to this widget. Use it in addition to the jQuery UI theme. -->
+<link href="/static/css/tagit.ui-zendesk.css" rel="stylesheet" type="text/css">
+
+<!-- jQuery and jQuery UI are required dependencies. -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- The real deal -->
+<script src="/static/js/tag-it.js" type="text/javascript" charset="utf-8"></script>
+
+<script src="/static/js/jquery.rating.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready( function() {
+    $('#recipe_rating').rating( {showText: false, readOnly: false, resetable: true } );
+  });
+</script>
+<link rel="stylesheet" href="/static/css/rating.css" type="text/css" media="screen" title="" charset="utf-8">
+
+<script>
+    $(function(){
+        var autocompleteTags = {{ ingredients_js_list|safe }};
+        $('#ingredientsList').tagit({
+            availableTags: autocompleteTags,
+            allowSpaces: true,
+            singleField: true,
+            caseSensitive: true,
+            singleFieldNode: $('#ingredientsfield')
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+
+<h1>Search for multiple ingredients</h1>
+{% if problems %}
+<h3>Problems:</h3>
+<ul>
+    {% for p in problems %}
+    <li>Ingredient {{p}} does not exist</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<form action="{% url 'search_ingredients' %}" method="post">
+    {% csrf_token %}
+    <input type="text" id="ingredientsfield" name="query" hidden="true" value="{{initialQuery}}" />
+    <p><b>Rating mindestens: </b><input type="range" id="recipe_rating" name="recipe_rating" min="0" max="5" value="1" /></b>
+    <ul id="ingredientsList"></ul>
+    <input type="submit" value="Search" />
+</form>
+
+</body>
+</html>
+
+{% endblock %}

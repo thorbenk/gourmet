@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load recipes_extras %}
+{% block content %}
+<h2>{{source.name}}</h2>
+<div class="row">
+  <div class="col-xs-3">
+    <a href="/static/images/books/{{ source.thumb }}" class="thumbnail">
+      <img src="/static/images/books/{{ source.thumb }}" class="img-rounded">
+    </a>
+  </div>
+  <div class="col-xs-9">
+  {% if recipes %}
+    <ul>
+    {% for recipe in recipes %}
+      <li>
+        <a href="{{recipe.get_absolute_url}}">{{recipe.name}}</a>
+        {% if recipe.page %}(page: {{recipe.page}}){% endif %}
+      </li>
+    {% endfor %}
+    </ul>
+    {% else %}
+    <div class="alert alert-warning">Bisher keine Rezepte.</div>
+    {% endif %}
+  </div>
+</div>
+{% recipe_list %}
+{% endblock %}
+<!-- kate: space-indent on; indent-width 2;  //-->

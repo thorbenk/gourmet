@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load recipes_extras %}
+{% block content %}
+<h1><i class="glyphicon glyphicon-book"></i>&nbsp;B&uuml;cher</h1>
+<ul class="nav nav-pills">
+  <li class="{% if ncols == 1 %}active{% endif %}"><a href="{% url 'sources' ncols=1 %}">List</a></li>
+  <li class="{% if ncols == 4 %}active{% endif %}"><a href="{% url 'sources' ncols=4 %}">Grid 4</a></li>
+  <li class="{% if ncols == 6 %}active{% endif %}"><a href="{% url 'sources' ncols=6 %}">Grid 6</a></li>
+</ul>
+<br>
+<ul class="nav nav-pills">
+  <li class="{% if order_by == 'name' %}active{% endif %}"><a href="{% url 'sources' ncols=ncols order_by='name' %}">order by name</a></li>
+  <li class="{% if order_by == 'recipe_count' %}active{% endif %}"><a href="{% url 'sources' ncols=ncols order_by='recipe_count' %}">by number of recipes</a></li>
+</ul>
+<br>
+{%if ncols > 1 %}
+{% for group in sources|group_by:ncols %}
+<div class="row">
+  {% for source in group %}
+  {% if ncols == 4 %}
+  <div class="col-xs-3">
+  {% else %}
+  <div class="col-xs-2">
+  {% endif %}
+    <a href="{{source.get_absolute_url}}" class="thumbnail">
+      <img src="/static/images/books/{{ source.thumb }}" class="img-rounded img-responsive" />
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+{% else %}
+{% for source in sources %}
+<div class="container">
+  <div class="row">
+    <div class="col-xs-2">
+      <a href="{{source.get_absolute_url}}" class="thumbnail">
+        <img src="/static/images/books/{{ source.thumb }}" class="img-rounded img-responsive" />
+      </a>
+    </div>
+    <div class="col-xs-10">
+      <h3><a href="{{source.get_absolute_url}}">{{source.name}}</a></h3>
+      {{source.recipe_count}} Rezepte
+      {% if source.subtitle %}
+      &nbsp;{{source.subtitle}}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<ul class="pagination">
+    {% if sources.number == 1 %}
+    <li class="disabled"><a href="?page={{ contacts.previous_page_number }}">previous</a>
+    {% else %}
+    <li><a href="?page={{ contacts.previous_page_number }}">previous</a></li>
+    {% endif %}
+    {% for page in page_numbers %}
+    {% if sources.number == page %} 
+    <li class="active"><a href="#">{{ page }}</a></li>
+    {% else %}
+    <li><a href="?page={{ page }}">{{ page }}</a></li>
+    {% endif %}
+    {% endfor%}
+    {% if sources.has_next %}
+    <li><a href="?page={{ sources.next_page_number }}">next</a></li>
+    {% else %}
+    <li class="disabled"><a href="#">next</a></li>
+    {% endif %}
+</ul>
+
+{% endblock %}
+<!-- kate: space-indent on; indent-width 2; //-->

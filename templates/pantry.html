@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Speisekammer</h1>
+<table class="table table-border">
+  {% for i in ingredients %}
+  <tr>
+    <td>{{i.formattedAmount}}</td>
+    <td>
+      <a href="{{i.ingredient.get_absolute_url}}">{{i.ingredient.name}}</a>
+    </td>
+    <td>
+      <div class="pull-right">
+        <a href="{% url 'pantry_ingredient_edit' i.ingredient.slug 'pantry' %}">Edit</a>&nbsp;|&nbsp;
+        <a href="{% url 'pantry_ingredient_delete' i.ingredient.slug 'pantry' %}">Delete</a>
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
+<!-- kate: space-indent on; indent-width 2; //-->

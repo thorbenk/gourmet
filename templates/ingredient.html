@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+{% for ingredientChain, ingredientDescendants in ingredientChains %}
+  {% include "ingchain.html" %}
+  {% if ingredientDescendants %}
+  <p>
+    {% for ing in ingredientDescendants %}
+      <a href="{{ing.get_absolute_url}}">{{ing.name}}</a>
+      {% if not forloop.last %}
+          &nbsp;|&nbsp;
+      {% endif %}
+    {% endfor %}
+  </p>
+  {% endif %}
+{% endfor %}
+<h1>
+  Recipes with Ingredients
+  <small>{% for ingredient in ingredients %}{{ingredient.name}}{%if not forloop.last %}, {%endif%}{% endfor %}</small>
+</h1>
+<table class="table table-border">
+{% for recipe in recipes %}
+{% spaceless %}
+<tr>
+  <td>
+    <a href="{{recipe.get_absolute_url}}">{{recipe.name}}</a>
+  </td>
+  <td>
+    {% for measuredIngredient in recipe.ingredientsOfInterest %}{{measuredIngredient.formattedAmount}} <a href="{{measuredIngredient.ingredient.get_absolute_url}}">{{measuredIngredient.ingredient.name}}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+  </td>
+</tr>
+{% endspaceless %}
+{% endfor %}
+</table>
+{% endblock %}
+<!-- kate: space-indent on; indent-width 2; //-->

@@ -1,0 +1,7 @@
+Pillow
+mysqlclient
+Django==1.11
+django-debug-toolbar
+python-graph-core==1.8.2
+units
+pytz

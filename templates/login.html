@@ -1,0 +1,18 @@
+<!-- kate: space-indent on; indent-width 2;  //-->
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+<div class="row">
+<div class="col-sm-6 col-md-4 col-md-offset-4">
+    <h2 class="form-signin-heading">{{ state }}</h2>
+    <form class="form-signin" role="form" method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <input type="username" name="username" class="form-control" placeholder="Username" required autofocus><br>
+    <input type="password" name="password" class="form-control" placeholder="" required><br>
+    <input type="hidden" name="next" value="{{ next }}" />
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button><br>
+    </form>
+</div>
+</div>
+</div>
+{% endblock %}
