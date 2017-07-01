@@ -6,6 +6,8 @@ very slightly, squashed the history and pushed it to github.
 
 This is a django-based web application for managing your recipe collection.
 
+![screenshot](https://raw.githubusercontent.com/thorbenk/gourmet/master/github/screenshot_recipe_list.png)
+
 Most importantly, `gourmet` stores your recipes as **simple text files**.
 A MySQL database is only used to _cache_ the data, but never as the primary
 means of storing your data. Edits to your recipe data are written directly
